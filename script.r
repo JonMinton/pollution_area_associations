@@ -480,3 +480,16 @@ norm_owner <- lm(
     pm10 ~ inc_deprivation * owned,
     data=j2
 )
+
+###################################################################################
+
+# As a crude measure of mix, let's use the produce of the three proportions 
+# of household type, then normalised to a 0-1 scale
+
+j3 <- joined %>% mutate(mix=owned *rented * social) %>% mutate(mix =mix/max(mix))
+
+qplot(x=mix, data=j3)
+
+qplot(x=inc_deprivation, y=mix, data=j3) + stat_smooth()
+qplot(y=inc_deprivation, x=mix, data=j3) + stat_smooth()
+
