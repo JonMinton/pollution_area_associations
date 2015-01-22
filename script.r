@@ -493,3 +493,23 @@ qplot(x=mix, data=j3)
 qplot(x=inc_deprivation, y=mix, data=j3) + stat_smooth()
 qplot(y=inc_deprivation, x=mix, data=j3) + stat_smooth()
 
+
+mix_social <- lm(
+    pm10 ~ inc_deprivation * social *mix, 
+    data=j3
+)
+
+mix_rental <- lm(
+    pm10 ~ inc_deprivation * rented * mix,
+    data=j3
+)
+
+mix_owner <- lm(
+    pm10 ~ inc_deprivation * owned * mix,
+    data=j3
+)
+
+# Renove 3 way interaction to make interpretation simpler
+summary(lm(pm10 ~ inc_deprivation*social + mix, data=j3))
+summary(lm(pm10 ~ inc_deprivation*owned + mix, data=j3))
+summary(lm(pm10 ~ inc_deprivation*rented + mix, data=j3))
