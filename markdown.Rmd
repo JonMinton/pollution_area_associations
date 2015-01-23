@@ -1,22 +1,17 @@
-# 22/1/2015
+---
+title: "initial explorations"
+author: "Jon_Minton"
+date: "Friday, January 23, 2015"
+output: html_document
+---
+# Introduction
+This document will show the results of some initial explorations of the relationship between pollution estimates at datazones and other variables available on the SNS website. 
 
-# Script to explore ecological associations between pollution estimated at datazone level 
-# and socioeconomic characteristics of neighbourhoods 
+#Run
 
-# n.b. using packrat to manage dependencies 
+## Load packages
 
-# Data to include
-
-# pollution
-## air pollution  - latest year
-## air pollution  - 2001 (ish)
-
-# sns
-#  simd
-#  tenure
-#  derelict sites
-
-
+```{r, cache=TRUE}
 # create file to fetch
 
 require(repmis)
@@ -24,7 +19,6 @@ require(plyr)
 require(dplyr)
 require(tidyr)
 require(ggplot2)
-
 
 # simd vars
 
@@ -55,6 +49,9 @@ qplot(data=simd_2009,
       x=simd_2001, y=simd_2008
 ) + stat_smooth()
 
+```
+##pollution
+```{r}
 
 # OK - now pollution for same years
 
@@ -96,6 +93,10 @@ lm(pm10 ~ simd, data=joined) %>% summary()
 lm(pm10 ~ simd, data=joined, subset=year==2001) %>% summary()
 lm(pm10 ~ simd, data=joined, subset=year==2008) %>% summary()
 
+```
+## income deprivation
+```{r}
+
 
 
 # Now let's look at income deprivation
@@ -133,93 +134,14 @@ qplot(
 
 # However, looking at it with linear models:
 
-# > lm(pm10 ~ inc_deprivation, data=joined) %>% summary()
-# 
-# Call:
-#     lm(formula = pm10 ~ inc_deprivation, data = joined)
-# 
-# Residuals:
-#     Min      1Q  Median      3Q     Max 
-# -4.8277 -1.0726  0.0898  1.1551  3.9237 
-# 
-# Coefficients:
-#     Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)     10.018307   0.019157   523.0   <2e-16 ***
-#     inc_deprivation  0.034135   0.001019    33.5   <2e-16 ***
-#     ---
-#     Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-# 
-# Residual standard error: 1.632 on 19426 degrees of freedom
-# Multiple R-squared:  0.05462,    Adjusted R-squared:  0.05457 
-# F-statistic:  1122 on 1 and 19426 DF,  p-value: < 2.2e-16
-# 
-# > lm(pm10 ~ inc_deprivation, data=joined, subset=year==2002) %>% summary()
-# 
-# Call:
-#     lm(formula = pm10 ~ inc_deprivation, data = joined, subset = year == 
-#            2002)
-# 
-# Residuals:
-#     Min      1Q  Median      3Q     Max 
-# -3.5662 -1.1556  0.0728  1.1859  3.0548 
-# 
-# Coefficients:
-#     Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)     10.894664   0.028295  385.04   <2e-16 ***
-#     inc_deprivation  0.032244   0.001464   22.03   <2e-16 ***
-#     ---
-#     Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-# 
-# Residual standard error: 1.422 on 6433 degrees of freedom
-# Multiple R-squared:  0.07015,	Adjusted R-squared:   0.07 
-# F-statistic: 485.3 on 1 and 6433 DF,  p-value: < 2.2e-16
-# 
-# > lm(pm10 ~ inc_deprivation, data=joined, subset=year==2005) %>% summary()
-# 
-# Call:
-#     lm(formula = pm10 ~ inc_deprivation, data = joined, subset = year == 
-#            2005)
-# 
-# Residuals:
-#     Min      1Q  Median      3Q     Max 
-# -4.8729 -1.1561 -0.0835  1.3019  4.4643 
-# 
-# Coefficients:
-#     Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)     9.270329   0.034934  265.37   <2e-16 ***
-#     inc_deprivation 0.050661   0.001949   25.99   <2e-16 ***
-#     ---
-#     Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-# 
-# Residual standard error: 1.726 on 6486 degrees of freedom
-# Multiple R-squared:  0.09433,	Adjusted R-squared:  0.09419 
-# F-statistic: 675.6 on 1 and 6486 DF,  p-value: < 2.2e-16
-# 
-# > lm(pm10 ~ inc_deprivation, data=joined, subset=year==2008) %>% summary()
-# 
-# Call:
-#     lm(formula = pm10 ~ inc_deprivation, data = joined, subset = year == 
-#            2008)
-# 
-# Residuals:
-#     Min      1Q  Median      3Q     Max 
-# -4.2543 -0.8497  0.3489  1.0620  3.0339 
-# 
-# Coefficients:
-#     Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)     9.941806   0.028410  349.94   <2e-16 ***
-#     inc_deprivation 0.017953   0.001486   12.08   <2e-16 ***
-#     ---
-#     Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-# 
-# Residual standard error: 1.355 on 6503 degrees of freedom
-# Multiple R-squared:  0.02196,	Adjusted R-squared:  0.02181 
-# F-statistic:   146 on 1 and 6503 DF,  p-value: < 2.2e-16
+lm(pm10 ~ inc_deprivation, data=joined) %>% summary()
 
-
-# i.e. statistically significant association in each year
-# but adjusted R-squared values are VERY low
-
+lm(pm10 ~ inc_deprivation, data=joined, subset=year==2002) %>% summary()
+lm(pm10 ~ inc_deprivation, data=joined, subset=year==2005) %>% summary()
+lm(pm10 ~ inc_deprivation, data=joined, subset=year==2008) %>% summary()
+```
+##SPRI sites
+```{r}
 
 ########## Now - spri sites 
 # (special pollution releases inventory)
@@ -513,3 +435,15 @@ mix_owner <- lm(
 summary(lm(pm10 ~ inc_deprivation*social + mix, data=j3))
 summary(lm(pm10 ~ inc_deprivation*owned + mix, data=j3))
 summary(lm(pm10 ~ inc_deprivation*rented + mix, data=j3))
+
+
+```
+
+
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+plot(cars)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
