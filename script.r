@@ -39,15 +39,15 @@ qplot(data=simd_2009, x=simd_value, facets = . ~ year )
 
 simd_2009 <- simd_2009 %>% filter(year !=2007)
 
+qplot(data=simd_2009, x=simd_value, facets = . ~ year)
+
 # correlation between 2001 and 2008 simd?
 
 simd_2009 <- simd_2009 %>% 
     select(-simd_type) %>% 
     group_by(datazone) %>% 
-    gather(-datazone, key=year, value=simd) %>% 
-    filter(!is.na(simd))
-
-simd_2009 <- simd_2009 %>% spread(key=year, value=simd)
+    filter(!is.na(simd_value)) %>% 
+    spread(key=year, value=simd_value) 
 
 names(simd_2009)[2:3] <- c("simd_2001", "simd_2008")
 
@@ -74,6 +74,7 @@ pm10 <- pollution %>%
 
 simd <- simd_2009 %>% gather(key=year, value=simd, -datazone)
 # move simd back to long format for better merging
+simd$year <- as.character(simd$year)
 simd$year[simd$year=="simd_2001"] <- "2001"
 simd$year[simd$year=="simd_2008"] <- "2008"
 simd$year <- as.numeric(simd$year)
@@ -133,89 +134,10 @@ qplot(
 
 # However, looking at it with linear models:
 
-# > lm(pm10 ~ inc_deprivation, data=joined) %>% summary()
-# 
-# Call:
-#     lm(formula = pm10 ~ inc_deprivation, data = joined)
-# 
-# Residuals:
-#     Min      1Q  Median      3Q     Max 
-# -4.8277 -1.0726  0.0898  1.1551  3.9237 
-# 
-# Coefficients:
-#     Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)     10.018307   0.019157   523.0   <2e-16 ***
-#     inc_deprivation  0.034135   0.001019    33.5   <2e-16 ***
-#     ---
-#     Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-# 
-# Residual standard error: 1.632 on 19426 degrees of freedom
-# Multiple R-squared:  0.05462,    Adjusted R-squared:  0.05457 
-# F-statistic:  1122 on 1 and 19426 DF,  p-value: < 2.2e-16
-# 
-# > lm(pm10 ~ inc_deprivation, data=joined, subset=year==2002) %>% summary()
-# 
-# Call:
-#     lm(formula = pm10 ~ inc_deprivation, data = joined, subset = year == 
-#            2002)
-# 
-# Residuals:
-#     Min      1Q  Median      3Q     Max 
-# -3.5662 -1.1556  0.0728  1.1859  3.0548 
-# 
-# Coefficients:
-#     Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)     10.894664   0.028295  385.04   <2e-16 ***
-#     inc_deprivation  0.032244   0.001464   22.03   <2e-16 ***
-#     ---
-#     Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-# 
-# Residual standard error: 1.422 on 6433 degrees of freedom
-# Multiple R-squared:  0.07015,	Adjusted R-squared:   0.07 
-# F-statistic: 485.3 on 1 and 6433 DF,  p-value: < 2.2e-16
-# 
-# > lm(pm10 ~ inc_deprivation, data=joined, subset=year==2005) %>% summary()
-# 
-# Call:
-#     lm(formula = pm10 ~ inc_deprivation, data = joined, subset = year == 
-#            2005)
-# 
-# Residuals:
-#     Min      1Q  Median      3Q     Max 
-# -4.8729 -1.1561 -0.0835  1.3019  4.4643 
-# 
-# Coefficients:
-#     Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)     9.270329   0.034934  265.37   <2e-16 ***
-#     inc_deprivation 0.050661   0.001949   25.99   <2e-16 ***
-#     ---
-#     Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-# 
-# Residual standard error: 1.726 on 6486 degrees of freedom
-# Multiple R-squared:  0.09433,	Adjusted R-squared:  0.09419 
-# F-statistic: 675.6 on 1 and 6486 DF,  p-value: < 2.2e-16
-# 
-# > lm(pm10 ~ inc_deprivation, data=joined, subset=year==2008) %>% summary()
-# 
-# Call:
-#     lm(formula = pm10 ~ inc_deprivation, data = joined, subset = year == 
-#            2008)
-# 
-# Residuals:
-#     Min      1Q  Median      3Q     Max 
-# -4.2543 -0.8497  0.3489  1.0620  3.0339 
-# 
-# Coefficients:
-#     Estimate Std. Error t value Pr(>|t|)    
-# (Intercept)     9.941806   0.028410  349.94   <2e-16 ***
-#     inc_deprivation 0.017953   0.001486   12.08   <2e-16 ***
-#     ---
-#     Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-# 
-# Residual standard error: 1.355 on 6503 degrees of freedom
-# Multiple R-squared:  0.02196,	Adjusted R-squared:  0.02181 
-# F-statistic:   146 on 1 and 6503 DF,  p-value: < 2.2e-16
-
+lm(pm10 ~ inc_deprivation, data=joined) %>% summary()
+lm(pm10 ~ inc_deprivation, data=joined, subset=year==2002) %>% summary()
+lm(pm10 ~ inc_deprivation, data=joined, subset=year==2005) %>% summary()
+lm(pm10 ~ inc_deprivation, data=joined, subset=year==2008) %>% summary()
 
 # i.e. statistically significant association in each year
 # but adjusted R-squared values are VERY low
@@ -435,29 +357,34 @@ joined <- p_tmp %>% inner_join(i_tmp) %>% inner_join(t_tmp)
 mod_01 <- lm(
     pm10 ~ inc_deprivation,
     data=joined)
+summary(mod_01)
 
 mod_02 <- mod_01 %>% update(
     . ~ . + social
     )
+summary(mod_02)
 
 mod_03 <- lm(pm10 ~ inc_deprivation * social, 
              data=joined)
-
+summary(mod_03)
 
 mod_social <- lm(
     pm10 ~ inc_deprivation * social, 
     data=joined
     )
+summary(mod_social)
 
 mod_rental <- lm(
     pm10 ~ inc_deprivation * rented,
     data=joined
     )
+summary(mod_rental)
 
 mod_owner <- lm(
     pm10 ~ inc_deprivation * owned,
     data=joined
     )
+summary(mod_owner)
 
 # now to normalise deprivation levels on a 0-1 scale
 
@@ -470,17 +397,19 @@ norm_social <- lm(
     pm10 ~ inc_deprivation * social, 
     data=j2
 )
+summary(norm_social)
 
 norm_rental <- lm(
     pm10 ~ inc_deprivation * rented,
     data=j2
 )
+summary(norm_rental)
 
 norm_owner <- lm(
     pm10 ~ inc_deprivation * owned,
     data=j2
 )
-
+summary(norm_owner)
 ###################################################################################
 
 # As a crude measure of mix, let's use the produce of the three proportions 
@@ -498,16 +427,19 @@ mix_social <- lm(
     pm10 ~ inc_deprivation * social *mix, 
     data=j3
 )
+summary(mix_social)
 
 mix_rental <- lm(
     pm10 ~ inc_deprivation * rented * mix,
     data=j3
 )
+summary(mix_rental)
 
 mix_owner <- lm(
     pm10 ~ inc_deprivation * owned * mix,
     data=j3
 )
+summary(mix_owner)
 
 # Renove 3 way interaction to make interpretation simpler
 summary(lm(pm10 ~ inc_deprivation*social + mix, data=j3))
