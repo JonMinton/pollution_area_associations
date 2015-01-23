@@ -386,6 +386,16 @@ mod_owner <- lm(
     )
 summary(mod_owner)
 
+joined$social_quartile <- joined$social %>% ntile(4)
+qplot(
+    y=pm10,
+    x=inc_deprivation,
+    colour=social,
+    data=joined
+    ) + scale_colour_gradient(limits=c(0,1)) + 
+    geom_smooth(data=subset(joined, subset=social_quartile==4), method="lm")
+    
+
 # now to normalise deprivation levels on a 0-1 scale
 
 j2 <- joined %>% mutate(inc_deprivation=(inc_deprivation - min(inc_deprivation))/(max(inc_deprivation)-min(inc_deprivation)))
@@ -445,3 +455,10 @@ summary(mix_owner)
 summary(lm(pm10 ~ inc_deprivation*social + mix, data=j3))
 summary(lm(pm10 ~ inc_deprivation*owned + mix, data=j3))
 summary(lm(pm10 ~ inc_deprivation*rented + mix, data=j3))
+
+
+### One additional thing: what if we encode proportion social housing as a colour with 
+# y: pm10 
+# x: income deprivation
+
+joined <- income_deprivation %>% inner_join(tenure_households) %>% inner_join(pollution) 
