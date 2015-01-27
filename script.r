@@ -31,25 +31,30 @@ require(ggplot2)
 simd_2009 <- source_DropboxData(
     file="simd_2009.csv",
     key="ghiu8n9db6rch9y"    
-    ) %>% tbl_df() 
-simd_2009 <- simd_2009 %>% gather("simd_type", "simd_value", c(2,4,5))
+    ) %>% tbl_df() # this loads the data and converts to tbl_df format, which makes it easier to read without
+# having to use head()
+simd_2009 <- simd_2009 %>% 
+    gather("simd_type", "simd_value", c(2,4,5)) # This takes the 2nd, 4th and 5th column, and stacks the data
+# a variable name is created called simd_type, and the value is called simd_value
 
 qplot(data=simd_2009, x=simd_value, facets = . ~ year )
 # clear no real values for 2007, so drop
 
-simd_2009 <- simd_2009 %>% filter(year !=2007)
+simd_2009 <- simd_2009 %>% filter(year !=2007) # this drops 2007 as no valid data for this year
 
 qplot(data=simd_2009, x=simd_value, facets = . ~ year)
 
 # correlation between 2001 and 2008 simd?
 
 simd_2009 <- simd_2009 %>% 
-    select(-simd_type) %>% 
-    group_by(datazone) %>% 
-    filter(!is.na(simd_value)) %>% 
-    spread(key=year, value=simd_value) 
+    select(-simd_type) %>%  # drop simd_type column as not needed
+    group_by(datazone) %>% # group by datazone 
+    filter(!is.na(simd_value)) %>% #remove rows with NA simd_value
+    spread(key=year, value=simd_value) # opposite of spread: one column becomes many
+# in this case each year is a different column
 
-names(simd_2009)[2:3] <- c("simd_2001", "simd_2008")
+names(simd_2009)[2:3] <- c("simd_2001", "simd_2008") # however using a number as a column name is 
+# a bad idea, so renaming the columns to simd_2001 and simd_2008
 
 qplot(data=simd_2009,
       x=simd_2001, y=simd_2008
