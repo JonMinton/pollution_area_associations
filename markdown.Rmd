@@ -2,23 +2,24 @@
 title: "initial explorations"
 author: "Jon_Minton"
 date: "Friday, January 23, 2015"
-output: html_document
+output: word_document
 ---
 # Introduction
 This document will show the results of some initial explorations of the relationship between pollution estimates at datazones and other variables available on the SNS website. 
 
 #Run
 
-## Load packages
 
-```{r, cache=TRUE}
-# create file to fetch
-
+```{r, echo=FALSE,eval=TRUE}
 require(repmis)
 require(plyr)
 require(dplyr)
 require(tidyr)
 require(ggplot2)
+```
+
+## SIMD correlations between years
+```{r}
 
 # simd vars
 
@@ -33,15 +34,15 @@ qplot(data=simd_2009, x=simd_value, facets = . ~ year )
 
 simd_2009 <- simd_2009 %>% filter(year !=2007)
 
+qplot(data=simd_2009, x=simd_value, facets = . ~ year)
+
 # correlation between 2001 and 2008 simd?
 
 simd_2009 <- simd_2009 %>% 
     select(-simd_type) %>% 
     group_by(datazone) %>% 
-    gather(-datazone, key=year, value=simd) %>% 
-    filter(!is.na(simd))
-
-simd_2009 <- simd_2009 %>% spread(key=year, value=simd)
+    filter(!is.na(simd_value)) %>% 
+    spread(key=year, value=simd_value) 
 
 names(simd_2009)[2:3] <- c("simd_2001", "simd_2008")
 
@@ -50,7 +51,8 @@ qplot(data=simd_2009,
 ) + stat_smooth()
 
 ```
-##pollution
+## Pollution and SIMD 
+
 ```{r}
 
 # OK - now pollution for same years
@@ -71,6 +73,7 @@ pm10 <- pollution %>%
 
 simd <- simd_2009 %>% gather(key=year, value=simd, -datazone)
 # move simd back to long format for better merging
+simd$year <- as.character(simd$year)
 simd$year[simd$year=="simd_2001"] <- "2001"
 simd$year[simd$year=="simd_2008"] <- "2008"
 simd$year <- as.numeric(simd$year)
@@ -93,11 +96,12 @@ lm(pm10 ~ simd, data=joined) %>% summary()
 lm(pm10 ~ simd, data=joined, subset=year==2001) %>% summary()
 lm(pm10 ~ simd, data=joined, subset=year==2008) %>% summary()
 
+
+
 ```
-## income deprivation
+
+##Income deprivation
 ```{r}
-
-
 
 # Now let's look at income deprivation
 income_deprivation <- source_DropboxData(
@@ -135,21 +139,23 @@ qplot(
 # However, looking at it with linear models:
 
 lm(pm10 ~ inc_deprivation, data=joined) %>% summary()
-
 lm(pm10 ~ inc_deprivation, data=joined, subset=year==2002) %>% summary()
 lm(pm10 ~ inc_deprivation, data=joined, subset=year==2005) %>% summary()
 lm(pm10 ~ inc_deprivation, data=joined, subset=year==2008) %>% summary()
-```
-##SPRI sites
-```{r}
 
+# i.e. statistically significant association in each year
+# but adjusted R-squared values are VERY low
+
+```
+##SPRI (Pollutant sites)
+```{r}
 ########## Now - spri sites 
 # (special pollution releases inventory)
 
 
 
 # CS-CSdSPRIdpctpop2    Population within 500m of a site on the Scottish Pollutant Release Inventory
-# CS-CSdSPRIdpctpop4	Population within 1000m of a site on the Scottish Pollutant Release Inventory
+# CS-CSdSPRIdpctpop4    Population within 1000m of a site on the Scottish Pollutant Release Inventory
 # CS-CSdSPRIdpctpop6	Population within 2000m of a site on the Scottish Pollutant Release Inventory
 # CS-CSdSPRIdpctpop8	Population over 2000m from a site on the Scottish Pollutant Release Inventory
 
@@ -206,7 +212,12 @@ qplot(
     y= prop_over_2000m,
     data=joined
 ) + stat_smooth(method="lm")
+```
 
+
+##Tenure type
+
+```{r}
 # Now that we have some evidence of disproportionate siting, albeit only in 2005, we can look at 
 # whether the tenure make-up of an area mediates this effect
 
@@ -281,11 +292,17 @@ qplot(
 # This seems reassuring as to the choice of categories applied. 
 
 
+```
+
+##External check on validity of datazone pollution estimates
+
+```{r, cache=TRUE}
+
 # Found a variable on ambient air quality _ There SHOULD be a strong correlation 
 # between this and our pollution estimates!
 
 
-# CS-AQdNO2dpopwtd1    Air Quality 2002-2004 - Nitrogen Dioxide concentration - Population weighted	NO2 concentration 2002-2004	ratio
+# CS-AQdNO2dpopwtd1    Air Quality 2002-2004 - Nitrogen Dioxide concentration - Population weighted    NO2 concentration 2002-2004	ratio
 # CS-AQdPM10dpopwtd1	Air Quality 2002-2004 - PM10 concentration - Population weighted	PM10 concentration 2002-2004	ratio
 
 ambient_air_quality <- source_DropboxData(
@@ -332,8 +349,10 @@ qplot(
     data=joined
 )
 # R2 of 0.91
+```
 
-
+##Explorations of tenure type and neighbourhood mix
+```{r}
 ##############################################################################################################
 # To do now:
 
@@ -357,29 +376,34 @@ joined <- p_tmp %>% inner_join(i_tmp) %>% inner_join(t_tmp)
 mod_01 <- lm(
     pm10 ~ inc_deprivation,
     data=joined)
+summary(mod_01)
 
 mod_02 <- mod_01 %>% update(
     . ~ . + social
     )
+summary(mod_02)
 
 mod_03 <- lm(pm10 ~ inc_deprivation * social, 
              data=joined)
-
+summary(mod_03)
 
 mod_social <- lm(
     pm10 ~ inc_deprivation * social, 
     data=joined
     )
+summary(mod_social)
 
 mod_rental <- lm(
     pm10 ~ inc_deprivation * rented,
     data=joined
     )
+summary(mod_rental)
 
 mod_owner <- lm(
     pm10 ~ inc_deprivation * owned,
     data=joined
     )
+summary(mod_owner)
 
 # now to normalise deprivation levels on a 0-1 scale
 
@@ -392,17 +416,19 @@ norm_social <- lm(
     pm10 ~ inc_deprivation * social, 
     data=j2
 )
+summary(norm_social)
 
 norm_rental <- lm(
     pm10 ~ inc_deprivation * rented,
     data=j2
 )
+summary(norm_rental)
 
 norm_owner <- lm(
     pm10 ~ inc_deprivation * owned,
     data=j2
 )
-
+summary(norm_owner)
 ###################################################################################
 
 # As a crude measure of mix, let's use the produce of the three proportions 
@@ -420,30 +446,22 @@ mix_social <- lm(
     pm10 ~ inc_deprivation * social *mix, 
     data=j3
 )
+summary(mix_social)
 
 mix_rental <- lm(
     pm10 ~ inc_deprivation * rented * mix,
     data=j3
 )
+summary(mix_rental)
 
 mix_owner <- lm(
     pm10 ~ inc_deprivation * owned * mix,
     data=j3
 )
+summary(mix_owner)
 
 # Renove 3 way interaction to make interpretation simpler
 summary(lm(pm10 ~ inc_deprivation*social + mix, data=j3))
 summary(lm(pm10 ~ inc_deprivation*owned + mix, data=j3))
 summary(lm(pm10 ~ inc_deprivation*rented + mix, data=j3))
-
-
 ```
-
-
-You can also embed plots, for example:
-
-```{r, echo=FALSE}
-plot(cars)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
