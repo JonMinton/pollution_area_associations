@@ -1,4 +1,4 @@
-pack# 22/1/2015
+# 22/1/2015
 
 # Script to explore ecological associations between pollution estimated at datazone level 
 # and socioeconomic characteristics of neighbourhoods 
@@ -24,6 +24,8 @@ require(plyr)
 require(dplyr)
 require(tidyr)
 require(ggplot2)
+
+sessionInfo()
 
 
 # simd vars
@@ -467,3 +469,68 @@ summary(lm(pm10 ~ inc_deprivation*rented + mix, data=j3))
 # x: income deprivation
 
 joined <- income_deprivation %>% inner_join(tenure_households) %>% inner_join(pollution) 
+
+
+
+
+
+
+# Pollution and Area Size -------------------------------------------------
+# prerequisites 
+
+require(plyr)
+require(tidyr)
+require(stringr)
+require(rgdal)
+require(rgeos)
+require(repmis)
+require(dplyr)
+
+
+# Data sources
+pollution <- source_DropboxData(
+    file="pollution_by_datazone.csv",
+    key="dziu2mknif22rmp"    
+) %>% tbl_df() 
+
+# datazone shapefiles
+dz_shps <- readOGR("E:/Dropbox/Data/Shapefiles/scotland_2001_datazones", "scotland_dz_2001")
+
+dz_shps@data$area <- sapply(dz_shps@polygons, function(x) x@area)
+
+# Population sizes
+populations <- read.csv(
+    "E:/Dropbox/Data/SNS/2015_release/derived_data/populations_by_age_year_sex.csv")
+    )
+
+populations <- populations %>%
+    tbl_df
+
+# want total populations by dz for 2001
+pop_count_2001 <- populations %>%
+    spread(sex, count) %>%
+    filter(year==2001) %>%
+    mutate(total=female+male)  %>% 
+    group_by(datazone) %>%
+    summarise(total=sum(total)) %>%
+    select(datazone, total)
+
+dz_shps@data <- dz_shps@data  %>% 
+    left_join(pop_count_2001, by=c("zonecode"="datazone")) %>%
+    mutate(pop_density = total/area)
+
+qplot(data=dz_shps@data, x=log(pop_density))
+
+#now to look at associations with pm10 and pm2.5 in 2001
+
+pol_2001 <- pollution %>%
+    filter(year==2001) %>%
+    select(-year)
+
+dz_shps@data <- dz_shps@data %>%
+    left_join(pol_2001, by=c("zonecode"="datazone"))
+
+qplot(data=dz_shps@data, x=log(pop_density), y=log(pm10))
+
+# Now to link to deprivation
+
